@@ -21,7 +21,7 @@ const Expense = () => {
     });
 
       //Get All expense details
-  const fetchExpenseDetails  = async()=>{
+  const fetchExpenseDetails = async() => {
     if(loading) return;
 
     setLoading(true);
@@ -35,8 +35,9 @@ const Expense = () => {
       }
     }catch(error){
       console.log("Failed to fetch expense details",error);
+    }finally{
+      setLoading(false); // Make sure to reset loading state
     }
- 
   };
 
   //handle add expense
@@ -67,7 +68,9 @@ const Expense = () => {
       });
       setOPenAddExpenseModal(false);
       toast.success("Expense added successfully");
-      await fetchExpenseDetails(); 
+      
+      // Immediately fetch updated expense data
+      await fetchExpenseDetails();
     } catch(error){
       console.error("Error adding expense", error.response?.data?.message || error.message);
       toast.error("Failed to add expense");

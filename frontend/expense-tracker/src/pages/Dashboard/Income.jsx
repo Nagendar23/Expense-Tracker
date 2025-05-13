@@ -5,17 +5,15 @@ import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPath';
 import Modal from '../../components/layouts/Modal';
 import AddIncomeForm from '../../components/Income/AddIncomeForm';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toast'
+import { toast } from 'react-toast'
 import IncomeList from '../../components/Income/IncomeList';
 import DeleteAlert from '../../components/layouts/DeleteAlert'
 import { useUserAuth } from '../../hooks/useUserAuth';
 
 const Income = () => {
-    useUserAuth();
+  useUserAuth();
   
   const [OpenAddIncomeModal, setOPenAddIncomeModal] = useState(false)
-
   const [incomeData, setIncomeData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openDeleteAlert, setOpenDeleteAlert] = useState({
@@ -24,24 +22,23 @@ const Income = () => {
   });
 
   //Get All income details
-  const fetchIncomeDetails  = async()=>{
+  const fetchIncomeDetails = async() => {
     if(loading) return;
 
     setLoading(true);
 
-    try{
+    try {
       const response = await axiosInstance.get(
         `${API_PATHS.INCOME.GET_ALL_INCOME}`
       );
       if(response.data){
         setIncomeData(response.data);
       }
-    }catch(error){
-      console.log("Failed to fetch income details",error);
+    } catch(error) {
+      console.log("Failed to fetch income details", error);
+    } finally {
+      setLoading(false);
     }
-    // finally{
-    //   setLoading(false);
-    // }
   };
 
   //handle add income
@@ -64,15 +61,18 @@ const Income = () => {
     }
 
     try{
-      await axiosInstance.post(API_PATHS.INCOME.ADD_INCOME, {
+      const response = await axiosInstance.post(API_PATHS.INCOME.ADD_INCOME, {
         source,
         amount,
         date,
         icon,
       });
+      
       setOPenAddIncomeModal(false);
       toast.success("Income added successfully");
-      await fetchIncomeDetails(); 
+      
+      // Immediately fetch updated income data
+      await fetchIncomeDetails();
     } catch(error){
       console.error("Error adding income", error.response?.data?.message || error.message);
       toast.error("Failed to add income");
@@ -86,7 +86,7 @@ const Income = () => {
       
       setOpenDeleteAlert({show: false, data: null});
       toast.success("Income deleted successfully");
-      await fetchIncomeDetails(); // Added await to ensure it completes before continuing
+      await fetchIncomeDetails();
     } catch(error) {
       console.error("Error deleting income", error.response?.data?.message || error.message);
       toast.error("Failed to delete income");
@@ -94,7 +94,7 @@ const Income = () => {
   };
 
   //handle download income details
-  const handleDownloadIncome = async()=>{
+  const handleDownloadIncome = async() => {
     try{
       const response = await axiosInstance.get(
         API_PATHS.INCOME.DOWNLOAD_INCOME,
@@ -117,11 +117,10 @@ const Income = () => {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchIncomeDetails();
-
-    return()=>{};
-  },[])
+    return () => {};
+  }, []);
 
   return (
    <DashboardLayout activeMenu="Income">
@@ -130,37 +129,36 @@ const Income = () => {
           <div className=''>
             <IncomeOverview
             transactions={incomeData}
-            onAddIncome={()=> setOPenAddIncomeModal(true)}
+            onAddIncome={() => setOPenAddIncomeModal(true)}
             />
           </div>
 
           <IncomeList 
           transactions={incomeData}
-          onDelete={(id)=>{
+          onDelete={(id) => {
             setOpenDeleteAlert({show:true, data:id})
           }}
-          onDownload = {handleDownloadIncome}
+          onDownload={handleDownloadIncome}
           />
         </div>
         <Modal 
         isOpen={OpenAddIncomeModal}
-        onClose={()=> setOPenAddIncomeModal(false)} 
-        title={`Add Income`}>
-
+        onClose={() => setOPenAddIncomeModal(false)} 
+        title="Add Income">
           <AddIncomeForm 
           onAddIncome={handleAddIncome}
           />
         </Modal>
 
-
         <Modal 
-        isOpen={openDeleteAlert.show}
-        onClose={()=> setOpenDeleteAlert({show:false, data:null })}
-        title="Delete Income"
+          isOpen={openDeleteAlert.show}
+          onClose={() => setOpenDeleteAlert({show:false, data:null})}
+          title="Delete Income"
         >
           <DeleteAlert
-             content="Are you sure you want to delete this income?"
-          onDelete={()=>handleDeleteIncome(openDeleteAlert.data)}
+            content="Are you sure you want to delete this income? This action cannot be undone."
+            onClose={() => setOpenDeleteAlert({show:false, data:null})}
+            onDelete={() => handleDeleteIncome(openDeleteAlert.data)}
           />
         </Modal>
       </div>

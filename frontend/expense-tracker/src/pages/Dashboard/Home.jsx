@@ -72,7 +72,7 @@ const Home = () => {
           />
 
         </div>
-        <div className='grid grid-cols-1 md:grid-cols-2 mt-6 '>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-5 mt-6'>
           <RecentTransactions
           transactions = {dashboardData?.recentTransactions}
           onSeeMore={()=>{
